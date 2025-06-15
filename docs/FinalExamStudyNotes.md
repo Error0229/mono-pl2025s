@@ -1129,3 +1129,853 @@ func (c *ChannelCounter) GetCount() int {
 1. **深入理解 A\***：可參考 AI 教科書，如 Russell & Norvig 的《Artificial Intelligence: A Modern Approach》，其中對 A\* 的分析更為詳盡，並討論一致性、一致啟發式等進階概念。
 2. **CSP 與 Go**：欲瞭解 Go 通道背後的理論基礎，可研讀 Hoare 的《Communicating Sequential Processes》。雖然語法與 Go 不同，但核心思想相通。
 3. **併發程式設計模式**：Go 社群有大量實作範例，如 worker pool、fan-in fan-out、pipeline 等。熟悉這些模式有助於實戰應用。
+
+## 七、可能考題與解答
+
+### 一、Prolog 與啟發式搜尋相關考題
+
+#### 1. 八宮格問題與 A* 演算法
+**考題敘述**：請實作一個 Prolog 程式來解決八宮格問題，使用 A* 演算法。程式需包含狀態表示、移動規則、啟發式函數，以及完整的 A* 搜尋實現。
+
+**解答**：
+```prolog
+% 狀態表示：使用列表表示 3x3 棋盤，0 表示空格
+% 例如：[2,8,3,1,6,4,7,0,5] 表示：
+% 2 8 3
+% 1 6 4
+% 7 0 5
+
+% 定義狀態轉換
+s(State1, State2, 1) :-
+    move(State1, State2).
+
+% 定義移動規則
+move(State1, State2) :-
+    append(Left, [0|Right], State1),
+    append(Left, [X|Right], State2),
+    member(X, [1,2,3,4,5,6,7,8]).
+
+% 定義目標狀態
+goal([1,2,3,4,5,6,7,8,0]).
+
+% 曼哈頓距離啟發式
+h(State, H) :-
+    manhattan_distance(State, H).
+
+manhattan_distance(State, H) :-
+    findall(D, (nth1(Pos, State, X), X \= 0,
+                goal_position(X, GoalPos),
+                manhattan_dist(Pos, GoalPos, D)), Distances),
+    sum_list(Distances, H).
+
+% 計算兩個位置間的曼哈頓距離
+manhattan_dist(Pos1, Pos2, D) :-
+    X1 is (Pos1-1) mod 3,
+    Y1 is (Pos1-1) // 3,
+    X2 is (Pos2-1) mod 3,
+    Y2 is (Pos2-1) // 3,
+    D is abs(X1-X2) + abs(Y1-Y2).
+
+% A* 演算法實現
+solve(Start, Path, Cost) :-
+    astar([[Start,0]], [], Path, Cost).
+
+astar([[State,G]|_], _, [State], G) :-
+    goal(State).
+
+astar([[State,G]|RestOpen], Closed, Path, Cost) :-
+    findall([Next,G1], 
+        (s(State,Next,C), 
+         \+ member(Next,Closed), 
+         G1 is G+C), 
+        Children),
+    append(RestOpen, Children, Open1),
+    sort(2, @=<, Open1, OpenSorted),
+    astar(OpenSorted, [State|Closed], PathRest, Cost),
+    Path = [State|PathRest].
+```
+
+#### 2. 啟發式函數設計
+**考題敘述**：請解釋為什麼曼哈頓距離是一個可容許的啟發式函式，並比較不同啟發式函式（如曼哈頓距離、錯位方塊數）的優缺點。
+
+**解答**：
+曼哈頓距離的可容許性證明：
+1. 在八宮格問題中，每個方塊每次只能移動一格（水平或垂直）
+2. 因此，從當前位置到目標位置的最短距離至少等於曼哈頓距離
+3. 這意味著曼哈頓距離永遠不會高估實際成本，滿足可容許性條件
+
+不同啟發式函式比較：
+1. 曼哈頓距離：
+   - 優點：可容許、計算簡單、考慮了方塊的實際移動距離
+   - 缺點：可能低估實際成本，因為沒有考慮方塊移動時的相互影響
+
+2. 錯位方塊數：
+   - 優點：計算極其簡單、容易理解
+   - 缺點：可能嚴重低估實際成本，因為沒有考慮方塊需要移動的距離
+
+3. 結合啟發式：
+   - 優點：可以結合多個啟發式的優點，提供更準確的估計
+   - 缺點：計算複雜度增加，需要確保可容許性
+
+#### 3. IDA* 與 A* 比較
+**考題敘述**：比較 A* 和 IDA* 的優缺點，並說明在什麼情況下 IDA* 會比 A* 更有效率。
+
+**解答**：
+A* 與 IDA* 比較：
+
+1. A* 優點：
+   - 保證找到最優解
+   - 展開節點數通常較少
+   - 適合有足夠記憶體的環境
+
+2. A* 缺點：
+   - 需要儲存所有展開的節點
+   - 記憶體使用量可能很大
+   - 在搜尋空間大時可能導致記憶體不足
+
+3. IDA* 優點：
+   - 記憶體使用量固定且較小
+   - 適合記憶體受限的環境
+   - 實現相對簡單
+
+4. IDA* 缺點：
+   - 可能重複展開相同的節點
+   - 在搜尋空間大時可能較慢
+   - 不適合有大量相同 f 值的情況
+
+IDA* 更有效率的情況：
+1. 記憶體受限的環境
+2. 搜尋空間較小
+3. 啟發式函數能有效剪枝
+4. 目標節點在較淺層
+
+### 二、併發程式理論相關考題
+
+#### 1. 生產者-消費者模式
+**考題敘述**：實作一個使用 channel 的生產者-消費者模式，需考慮同步、錯誤處理和資源管理。
+
+**解答**：
+```go
+// 完整的生產者-消費者實現
+type Producer struct {
+    ch    chan<- int
+    done  chan<- bool
+}
+
+func (p *Producer) Run() {
+    for i := 0; i < 10; i++ {
+        p.ch <- i
+        time.Sleep(time.Millisecond * 100)
+    }
+    p.done <- true
+}
+
+type Consumer struct {
+    ch    <-chan int
+    done  <-chan bool
+    wg    *sync.WaitGroup
+}
+
+func (c *Consumer) Run() {
+    defer c.wg.Done()
+    for {
+        select {
+        case x := <-c.ch:
+            fmt.Printf("Consumed: %d\n", x)
+        case <-c.done:
+            return
+        }
+    }
+}
+
+func main() {
+    ch := make(chan int, 5)  // 緩衝通道
+    done := make(chan bool)
+    var wg sync.WaitGroup
+    
+    producer := &Producer{ch: ch, done: done}
+    consumer := &Consumer{ch: ch, done: done, wg: &wg}
+    
+    wg.Add(1)
+    go producer.Run()
+    go consumer.Run()
+    
+    wg.Wait()
+}
+```
+
+#### 2. 讀寫鎖實現
+**考題敘述**：使用 semaphore 實作一個讀寫鎖，並解釋 semaphore 和 mutex 的區別。
+
+**解答**：
+```go
+// 使用 semaphore 實現讀寫鎖
+type RWLock struct {
+    readers    int
+    mu         sync.Mutex
+    writer     chan struct{}
+}
+
+func NewRWLock() *RWLock {
+    rw := &RWLock{
+        writer: make(chan struct{}, 1),
+    }
+    rw.readerCond = sync.NewCond(&rw.mu)
+    return rw
+}
+
+func (l *RWLock) RLock() {
+    l.mu.Lock()
+    defer l.mu.Unlock()
+    
+    for len(l.writer) > 0 {
+        l.readerCond.Wait()
+    }
+    l.readers++
+}
+
+func (l *RWLock) RUnlock() {
+    l.mu.Lock()
+    defer l.mu.Unlock()
+    
+    l.readers--
+    if l.readers == 0 {
+        l.readerCond.Broadcast()
+    }
+}
+
+func (l *RWLock) Lock() {
+    l.writer <- struct{}{}
+    l.mu.Lock()
+    for l.readers > 0 {
+        l.readerCond.Wait()
+    }
+}
+
+func (l *RWLock) Unlock() {
+    l.mu.Unlock()
+    <-l.writer
+    l.readerCond.Broadcast()
+}
+```
+
+Semaphore 和 Mutex 的區別：
+1. 功能範圍：
+   - Mutex：二元信號量，只有鎖定和解鎖兩種狀態
+   - Semaphore：可以有多個計數值，允許多個進程同時訪問
+
+2. 使用場景：
+   - Mutex：適合互斥訪問共享資源
+   - Semaphore：適合控制並發數量、實現生產者-消費者模式等
+
+3. 實現方式：
+   - Mutex：通常由作業系統提供，效率較高
+   - Semaphore：可以基於 Mutex 實現，功能更靈活
+
+#### 3. 死鎖檢測與預防
+**考題敘述**：分析並修復死鎖問題，實作一個死鎖檢測機制。
+
+**解答**：
+```go
+// 死鎖檢測機制
+type Resource struct {
+    id     int
+    locked bool
+    owner  int
+}
+
+type Process struct {
+    id        int
+    resources map[int]*Resource
+    mu        sync.Mutex
+}
+
+type DeadlockDetector struct {
+    processes  map[int]*Process
+    resources  map[int]*Resource
+    mu         sync.RWMutex
+}
+
+func NewDeadlockDetector() *DeadlockDetector {
+    return &DeadlockDetector{
+        processes: make(map[int]*Process),
+        resources: make(map[int]*Resource),
+    }
+}
+
+func (d *DeadlockDetector) DetectDeadlock() bool {
+    d.mu.RLock()
+    defer d.mu.RUnlock()
+    
+    // 建立資源分配圖
+    graph := make(map[int][]int)
+    for _, p := range d.processes {
+        p.mu.Lock()
+        for _, r := range p.resources {
+            if r.locked {
+                graph[p.id] = append(graph[p.id], r.owner)
+            }
+        }
+        p.mu.Unlock()
+    }
+    
+    // 使用 DFS 檢測循環
+    visited := make(map[int]bool)
+    recStack := make(map[int]bool)
+    
+    var dfs func(int) bool
+    dfs = func(node int) bool {
+        visited[node] = true
+        recStack[node] = true
+        
+        for _, neighbor := range graph[node] {
+            if !visited[neighbor] {
+                if dfs(neighbor) {
+                    return true
+                }
+            } else if recStack[neighbor] {
+                return true
+            }
+        }
+        
+        recStack[node] = false
+        return false
+    }
+    
+    for node := range graph {
+        if !visited[node] {
+            if dfs(node) {
+                return true
+            }
+        }
+    }
+    
+    return false
+}
+
+// 避免死鎖的資源分配策略
+func (d *DeadlockDetector) AllocateResource(processID, resourceID int) bool {
+    d.mu.Lock()
+    defer d.mu.Unlock()
+    
+    // 檢查資源是否可用
+    resource, exists := d.resources[resourceID]
+    if !exists || resource.locked {
+        return false
+    }
+    
+    // 模擬分配
+    resource.locked = true
+    resource.owner = processID
+    
+    // 檢查是否會導致死鎖
+    if d.DetectDeadlock() {
+        // 如果會導致死鎖，回滾分配
+        resource.locked = false
+        return false
+    }
+    
+    return true
+}
+```
+
+### 三、Go 語言併發特性相關考題
+
+#### 1. Goroutine 與 Channel
+**考題敘述**：解釋 goroutine 和作業系統執行緒的區別，並實作一個使用 goroutine 的並行處理系統。
+
+**解答**：
+Goroutine 與作業系統執行緒的區別：
+1. 記憶體使用：
+   - Goroutine：初始棧大小約 2KB，可動態增長
+   - 執行緒：初始棧大小約 1MB，固定大小
+
+2. 創建成本：
+   - Goroutine：創建和銷毀成本低
+   - 執行緒：創建和銷毀成本高
+
+3. 調度方式：
+   - Goroutine：由 Go 運行時調度，M:N 模型
+   - 執行緒：由作業系統調度，1:1 模型
+
+4. 並發數量：
+   - Goroutine：可輕鬆創建數千個
+   - 執行緒：受系統資源限制
+
+並行處理系統實作：
+```go
+// 並行處理系統
+type Task struct {
+    ID     int
+    Data   interface{}
+    Result interface{}
+    Error  error
+}
+
+type Worker struct {
+    id       int
+    tasks    <-chan *Task
+    results  chan<- *Task
+    done     <-chan struct{}
+}
+
+func (w *Worker) Run() {
+    for {
+        select {
+        case task := <-w.tasks:
+            // 處理任務
+            result, err := processTask(task)
+            task.Result = result
+            task.Error = err
+            w.results <- task
+        case <-w.done:
+            return
+        }
+    }
+}
+
+type ParallelProcessor struct {
+    workers  int
+    tasks    chan *Task
+    results  chan *Task
+    done     chan struct{}
+    wg       sync.WaitGroup
+}
+
+func NewParallelProcessor(workers int) *ParallelProcessor {
+    return &ParallelProcessor{
+        workers: workers,
+        tasks:   make(chan *Task),
+        results: make(chan *Task),
+        done:    make(chan struct{}),
+    }
+}
+
+func (p *ParallelProcessor) Start() {
+    for i := 0; i < p.workers; i++ {
+        p.wg.Add(1)
+        go p.worker(i)
+    }
+}
+
+func (p *ParallelProcessor) worker(id int) {
+    defer p.wg.Done()
+    worker := &Worker{
+        id:      id,
+        tasks:   p.tasks,
+        results: p.results,
+        done:    p.done,
+    }
+    worker.Run()
+}
+
+func (p *ParallelProcessor) Submit(task *Task) {
+    p.tasks <- task
+}
+
+func (p *ParallelProcessor) Stop() {
+    close(p.done)
+    p.wg.Wait()
+    close(p.tasks)
+    close(p.results)
+}
+```
+
+#### 2. 記憶體模型與同步
+**考題敘述**：解釋 Go 的記憶體模型，並設計一個保證記憶體一致性的並行系統。
+
+**解答**：
+Go 記憶體模型要點：
+1. 基本原則：
+   - 單個 goroutine 中的操作按順序執行
+   - 不同 goroutine 間的同步通過 channel 或同步原語實現
+   - 編譯器和處理器可能重排指令，但不會影響單個 goroutine 的行為
+
+2. 同步機制：
+   - channel 操作：發送和接收操作是同步點
+   - sync 包：Mutex、RWMutex、WaitGroup 等提供同步保證
+   - atomic 包：提供原子操作
+
+記憶體一致性系統實作：
+```go
+// 保證記憶體一致性的並行系統
+type ConsistentSystem struct {
+    mu      sync.RWMutex
+    data    map[string]interface{}
+    version int64
+}
+
+func NewConsistentSystem() *ConsistentSystem {
+    return &ConsistentSystem{
+        data: make(map[string]interface{}),
+    }
+}
+
+// 使用 RWMutex 保證讀寫一致性
+func (s *ConsistentSystem) Get(key string) (interface{}, int64) {
+    s.mu.RLock()
+    defer s.mu.RUnlock()
+    return s.data[key], s.version
+}
+
+func (s *ConsistentSystem) Set(key string, value interface{}) {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    s.data[key] = value
+    s.version++
+}
+
+// 使用 atomic 操作保證版本號一致性
+func (s *ConsistentSystem) GetVersion() int64 {
+    return atomic.LoadInt64(&s.version)
+}
+
+// 使用 channel 實現事務
+type Transaction struct {
+    ops     []Operation
+    result  chan error
+}
+
+type Operation struct {
+    Type  string
+    Key   string
+    Value interface{}
+}
+
+func (s *ConsistentSystem) ExecuteTransaction(tx *Transaction) error {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    
+    // 執行所有操作
+    for _, op := range tx.ops {
+        switch op.Type {
+        case "SET":
+            s.data[op.Key] = op.Value
+        case "DELETE":
+            delete(s.data, op.Key)
+        }
+    }
+    
+    s.version++
+    return nil
+}
+```
+
+#### 3. Context 與取消機制
+**考題敘述**：實作一個可取消的並行處理系統，使用 context 控制生命週期。
+
+**解答**：
+```go
+// 可取消的並行處理系統
+type CancellableProcessor struct {
+    ctx     context.Context
+    cancel  context.CancelFunc
+    tasks   chan *Task
+    results chan *Task
+    wg      sync.WaitGroup
+}
+
+func NewCancellableProcessor() *CancellableProcessor {
+    ctx, cancel := context.WithCancel(context.Background())
+    return &CancellableProcessor{
+        ctx:     ctx,
+        cancel:  cancel,
+        tasks:   make(chan *Task),
+        results: make(chan *Task),
+    }
+}
+
+func (p *CancellableProcessor) Start(workers int) {
+    for i := 0; i < workers; i++ {
+        p.wg.Add(1)
+        go p.worker(i)
+    }
+}
+
+func (p *CancellableProcessor) worker(id int) {
+    defer p.wg.Done()
+    
+    for {
+        select {
+        case task := <-p.tasks:
+            // 處理任務
+            result, err := processTaskWithContext(p.ctx, task)
+            task.Result = result
+            task.Error = err
+            p.results <- task
+        case <-p.ctx.Done():
+            return
+        }
+    }
+}
+
+func (p *CancellableProcessor) Submit(task *Task) error {
+    select {
+    case p.tasks <- task:
+        return nil
+    case <-p.ctx.Done():
+        return p.ctx.Err()
+    }
+}
+
+func (p *CancellableProcessor) Stop() {
+    p.cancel()
+    p.wg.Wait()
+    close(p.tasks)
+    close(p.results)
+}
+
+// 帶超時控制的任務處理
+func processTaskWithContext(ctx context.Context, task *Task) (interface{}, error) {
+    // 創建帶超時的上下文
+    ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+    defer cancel()
+    
+    // 使用 select 實現超時控制
+    done := make(chan struct{})
+    var result interface{}
+    var err error
+    
+    go func() {
+        result, err = processTask(task)
+        close(done)
+    }()
+    
+    select {
+    case <-done:
+        return result, err
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    }
+}
+```
+
+## 八、基礎與中等難度考題
+
+### 一、Prolog 與啟發式搜尋基礎考題
+
+#### 1. 狀態空間搜尋基本概念
+**考題敘述**：請解釋什麼是狀態空間搜尋，並說明在 Prolog 中如何表示狀態和狀態轉換。
+
+**解答**：
+狀態空間搜尋的基本概念：
+1. 狀態空間：
+   - 所有可能狀態的集合
+   - 每個狀態代表問題在某一時刻的完整描述
+   - 狀態之間的轉換代表可能的操作
+
+2. Prolog 中的狀態表示：
+   - 使用事實或規則描述狀態
+   - 常見的表示方式包括列表、複合項等
+   - 例如：`state([1,2,3,4,5,6,7,8,0])` 表示八宮格的一個狀態
+
+3. 狀態轉換：
+   - 使用規則描述狀態之間的轉換關係
+   - 通常使用 `s(State1, State2, Cost)` 的形式
+   - 轉換規則需要考慮問題的約束條件
+
+#### 2. 啟發式搜尋基本概念
+**考題敘述**：請解釋什麼是啟發式函數，並說明為什麼啟發式函數在搜尋過程中很重要。
+
+**解答**：
+啟發式函數的基本概念：
+1. 定義：
+   - 啟發式函數是對從當前狀態到目標狀態的距離估計
+   - 通常記作 h(n)，其中 n 是當前狀態
+   - 啟發式函數的值越小，表示越接近目標
+
+2. 重要性：
+   - 幫助搜尋演算法選擇最有希望的路徑
+   - 減少需要探索的狀態數量
+   - 提高搜尋效率
+
+3. 啟發式函數的特性：
+   - 可容許性：不會高估實際成本
+   - 一致性：滿足三角不等式
+   - 單調性：隨著搜尋深度增加，估計值不會減少
+
+#### 3. 搜尋演算法比較
+**考題敘述**：比較深度優先搜尋(DFS)和廣度優先搜尋(BFS)的優缺點，並說明它們各自適合什麼樣的問題。
+
+**解答**：
+DFS 和 BFS 的比較：
+1. 深度優先搜尋(DFS)：
+   - 優點：
+     * 記憶體使用量較少
+     * 適合搜尋深度較大的問題
+     * 可以快速找到一個解
+   - 缺點：
+     * 不一定找到最優解
+     * 可能陷入很深的無效路徑
+   - 適用場景：
+     * 解空間較大
+     * 只需要找到一個解
+     * 記憶體受限
+
+2. 廣度優先搜尋(BFS)：
+   - 優點：
+     * 保證找到最優解
+     * 不會陷入很深的無效路徑
+   - 缺點：
+     * 記憶體使用量較大
+     * 在解空間較大時效率較低
+   - 適用場景：
+     * 需要找到最優解
+     * 解空間較小
+     * 有足夠的記憶體
+
+### 二、併發程式基礎考題
+
+#### 1. 併發與並行
+**考題敘述**：請解釋併發(Concurrency)和並行(Parallelism)的區別，並舉例說明。
+
+**解答**：
+併發與並行的區別：
+1. 併發(Concurrency)：
+   - 定義：多個任務交替執行
+   - 特點：
+     * 任務可以同時存在
+     * 不一定同時執行
+     * 適合 I/O 密集型任務
+   - 例子：
+     * 網頁伺服器處理多個請求
+     * 使用者介面響應多個事件
+
+2. 並行(Parallelism)：
+   - 定義：多個任務同時執行
+   - 特點：
+     * 需要多個處理器
+     * 真正同時執行
+     * 適合計算密集型任務
+   - 例子：
+     * 多核心處理器同時執行多個執行緒
+     * 圖形處理器並行計算
+
+#### 2. 同步機制
+**考題敘述**：請解釋什麼是同步機制，並說明為什麼在併發程式中需要同步。
+
+**解答**：
+同步機制的基本概念：
+1. 同步的定義：
+   - 控制多個執行緒的執行順序
+   - 確保共享資源的正確訪問
+   - 避免競爭條件
+
+2. 為什麼需要同步：
+   - 避免資料競爭
+   - 確保資料一致性
+   - 防止死鎖和活鎖
+   - 實現執行緒間的通訊
+
+3. 常見的同步問題：
+   - 競爭條件：多個執行緒同時修改共享資料
+   - 死鎖：多個執行緒互相等待
+   - 活鎖：執行緒不斷重試但無法進展
+   - 飢餓：某些執行緒永遠無法獲得資源
+
+#### 3. 通訊機制
+**考題敘述**：請解釋共享記憶體和訊息傳遞兩種通訊機制的區別，並說明它們各自的優缺點。
+
+**解答**：
+通訊機制的比較：
+1. 共享記憶體：
+   - 定義：多個執行緒共享同一塊記憶體區域
+   - 優點：
+     * 通訊效率高
+     * 實現簡單
+     * 適合緊耦合系統
+   - 缺點：
+     * 需要同步機制
+     * 容易出現競爭條件
+     * 除錯困難
+
+2. 訊息傳遞：
+   - 定義：執行緒通過發送和接收訊息來通訊
+   - 優點：
+     * 鬆耦合
+     * 更容易擴展
+     * 適合分散式系統
+   - 缺點：
+     * 通訊開銷較大
+     * 需要額外的訊息處理
+     * 可能出現訊息丟失
+
+### 三、Go 語言基礎考題
+
+#### 1. Goroutine 基本概念
+**考題敘述**：請解釋什麼是 goroutine，並說明它與傳統執行緒的區別。
+
+**解答**：
+Goroutine 的基本概念：
+1. 定義：
+   - Go 語言的輕量級執行緒
+   - 由 Go 運行時管理
+   - 使用 `go` 關鍵字創建
+
+2. 與傳統執行緒的區別：
+   - 記憶體使用：
+     * Goroutine：初始棧大小約 2KB
+     * 執行緒：初始棧大小約 1MB
+   - 創建成本：
+     * Goroutine：創建和銷毀成本低
+     * 執行緒：創建和銷毀成本高
+   - 調度方式：
+     * Goroutine：由 Go 運行時調度
+     * 執行緒：由作業系統調度
+
+3. 使用場景：
+   - 並行處理
+   - 非阻塞 I/O
+   - 事件處理
+   - 並行計算
+
+#### 2. Channel 基本概念
+**考題敘述**：請解釋什麼是 channel，並說明它在 Go 語言中的作用。
+
+**解答**：
+Channel 的基本概念：
+1. 定義：
+   - Go 語言中的通訊原語
+   - 用於 goroutine 之間的通訊
+   - 使用 `make(chan T)` 創建
+
+2. 主要作用：
+   - 同步：確保 goroutine 按正確順序執行
+   - 通訊：在 goroutine 之間傳遞資料
+   - 控制：實現 goroutine 的生命週期管理
+
+3. 使用方式：
+   - 發送：`ch <- value`
+   - 接收：`value := <-ch`
+   - 關閉：`close(ch)`
+   - 遍歷：`for v := range ch`
+
+#### 3. 並行控制
+**考題敘述**：請解釋 Go 語言中的 `sync` 包提供了哪些並行控制機制，並說明它們的用途。
+
+**解答**：
+Go 語言的並行控制機制：
+1. Mutex（互斥鎖）：
+   - 用途：保護共享資源
+   - 方法：`Lock()` 和 `Unlock()`
+   - 適用場景：需要互斥訪問的共享資源
+
+2. RWMutex（讀寫鎖）：
+   - 用途：允許多個讀者或一個寫者
+   - 方法：`RLock()`、`RUnlock()`、`Lock()`、`Unlock()`
+   - 適用場景：讀多寫少的共享資源
+
+3. WaitGroup：
+   - 用途：等待一組 goroutine 完成
+   - 方法：`Add()`、`Done()`、`Wait()`
+   - 適用場景：需要等待多個並行任務完成
+
+4. Once：
+   - 用途：確保某個函數只執行一次
+   - 方法：`Do()`
+   - 適用場景：初始化、單例模式
+
+5. Cond：
+   - 用途：條件變數，用於 goroutine 間的等待和通知
+   - 方法：`Wait()`、`Signal()`、`Broadcast()`
+   - 適用場景：複雜的同步需求
