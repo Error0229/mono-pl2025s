@@ -1,0 +1,12 @@
+# 2. A* 演算法與評估函式
+A* 演算法結合了成本累積函式 `g(n)` 與啟發式函式 `h(n)`，形成評估函式 `f(n) = g(n) + h(n)`。其中 `g(n)` 代表從起點到目前節點 `n` 的實際耗費，而 `h(n)` 則預估從 `n` 到目標的成本。若 `h(n)` 永遠不高於真實成本，則稱為「可容許」(admissible)，此時 A* 搜尋可以保證找到最短路徑。
+
+A* 的流程包括：
+1. 將起始節點放入開放表(open list)並計算 `f` 值。
+2. 反覆從開放表取出 `f` 值最小的節點展開，將產生的新狀態根據 `f` 值插入表中。
+3. 若開放表為空代表搜尋失敗，取出的節點若為目標則成功，否則持續。此過程會擴張大量節點，啟發式函式的好壞左右了搜尋效率。
+
+
+The heuristic search slides (pages 6-7) explain that A* evaluates nodes using an optimistic estimate h(n). The Admissibility Theorem by Hart, Nilsson and Raphael states that if h(n) never overestimates the actual remaining cost h*(n), then A* is guaranteed to find an optimal solution. Using h(n)=0 still yields optimality but degrades performance; good heuristics balance accuracy and computation cost.
+
+

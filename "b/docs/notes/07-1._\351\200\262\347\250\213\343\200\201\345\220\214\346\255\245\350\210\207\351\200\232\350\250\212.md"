@@ -1,0 +1,10 @@
+# 1. 進程、同步與通訊
+論文《Concepts and Notations for Concurrent Programming》總結了併發程式的核心概念：
+- **進程(Process)**：獨立的執行單元，可視為「執行緒」或「任務」。
+- **通訊(Communication)**：進程之間交換資料的方式，可透過共享變數或訊息傳遞。
+- **同步(Synchronization)**：約束進程執行順序的手段，避免競爭或確保條件被滿足。
+
+文章以操作式與公理式兩種角度探討同步需求。在操作式視角，程序是原子事件的序列；在公理式視角，可以用 Hoare Triple `{P} S {Q}` 推導程式正確性。
+
+According to the concurrency paper's introduction, a process is an independent thread of control that interacts with others via communication and synchronization. Languages provide notations such as parallel blocks or fork/join constructs for expressing concurrent execution. Correctness often relies on ensuring that processes coordinate access to shared resources or exchange messages safely.
+

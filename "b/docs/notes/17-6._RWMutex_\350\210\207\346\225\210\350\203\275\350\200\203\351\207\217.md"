@@ -1,0 +1,23 @@
+# 6. RWMutex 與效能考量
+若讀取次數遠大於寫入，可改用 `sync.RWMutex`，允許多個讀取者同時進入臨界區，但寫入者仍需獨占：
+
+```go
+var mu sync.RWMutex
+
+func ReadBalance() int {
+    mu.RLock()
+    defer mu.RUnlock()
+    return balance
+}
+
+func WriteBalance(amount int) {
+    mu.Lock()
+    balance = amount
+    mu.Unlock()
+}
+```
+
+讀寫鎖在讀多寫少的情境下能提高吞吐量，但若寫入頻繁或鎖競爭低，則沒有明顯好處，甚至因維護額外狀態而慢些。
+
+`sync.RWMutex` allows multiple readers or a single writer. When read-heavy workloads dominate, it reduces contention compared to a plain mutex. The Go book cautions that if writes are frequent, the overhead of an RWMutex may outweigh its benefits.
+
