@@ -1,0 +1,23 @@
+# 6. 範例：八宮格求解程式
+以下是一個簡化的 Prolog A* 搜尋片段，示意如何結合 `s/3` 與 `h/2`：
+
+```prolog
+solve(Start, Path, Cost) :-
+    astar([[Start,0]], [], Path, Cost).
+
+astar([[State,G]|_], _, [State], G) :-
+    goal(State).
+astar([[State,G]|RestOpen], Closed, Path, Cost) :-
+    findall([Next,G1], (s(State,Next,C), \+ member(Next,Closed), G1 is G+C), Children),
+    append(RestOpen, Children, Open1),
+    sort(2, @=<, Open1, OpenSorted),
+    astar(OpenSorted, [State|Closed], PathRest, Cost),
+    Path = [State|PathRest].
+```
+
+此程式每次取出 `f` 最小節點展開，並透過 `sort/4` 依第二欄位排序，雖然不夠完整但能說明基本概念。要具體應用，需要根據問題定義 `s/3` 與 `h/2`。
+
+## 二、併發程式理論
+
+The 8-puzzle example in the slides walks through node expansions under different heuristics. Implementing this in Prolog reinforces how `s/3` captures moves and `h/2` evaluates each state. By experimenting with both Manhattan distance and misplaced tiles, you can observe how a more accurate heuristic shrinks the search tree.
+

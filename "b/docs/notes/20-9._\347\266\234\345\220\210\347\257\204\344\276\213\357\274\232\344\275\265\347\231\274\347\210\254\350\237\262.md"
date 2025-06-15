@@ -1,0 +1,5 @@
+# 9. 綜合範例：併發爬蟲
+結合前述技巧，可建立一個具限速與取消功能的並行網頁爬蟲：使用計數 semaphore 控制同時下載連結的數量，並在達到深度限制或收到取消信號時關閉通道，確保所有 goroutine 能順利退出。此例展示了 channels、goroutines、select 與 WaitGroup 的協同運用。
+
+This example combines semaphores, WaitGroup, and cancel channels to crawl web links in parallel. Limiting concurrency prevents resource exhaustion, while cancellation ensures all goroutines terminate when the crawl depth limit is reached or the user aborts.
+

@@ -1,0 +1,5 @@
+# 7. 記憶體模型與同步
+現代 CPU 可能將寫入暫存於快取，導致不同核心觀察到的資料不一致。同步原語(包含 channel 操作與 mutex)不僅規定執行順序，也會刷新快取，確保其他處理器能看見最新資料。這是為何就算 `Balance` 僅讀取一個整數，也需要加鎖，以防止與 `Deposit` 的寫入交錯產生錯誤結果。
+
+Go's memory model guarantees that communications over channels or explicit synchronization with mutexes establishes happens-before relationships. Without such synchronization, writes by one goroutine may not be visible to others. Thus even reading a simple integer must be guarded when it can be updated concurrently.
+

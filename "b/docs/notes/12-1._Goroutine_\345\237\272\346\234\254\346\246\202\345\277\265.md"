@@ -1,0 +1,5 @@
+# 1. Goroutine 基本概念
+Goroutine 是由 Go 執行時管理的輕量級執行緒。啟動 goroutine 時只需在函式呼叫前加 `go`，不必像傳統執行緒般預先配置棧大小。Go 執行時會根據需要動態調整棧容量，使成千上萬個 goroutine 在單機上仍可高效運行。
+
+Go's runtime multiplexes thousands of goroutines onto a small number of OS threads. The book notes that starting a goroutine is as cheap as a function call and its stack begins small, growing as needed. This lightweight model encourages breaking tasks into many concurrent units.
+

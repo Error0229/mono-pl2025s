@@ -1,0 +1,5 @@
+# 4. 死鎖與公平
+良好設計的同步機制需避免死鎖 (deadlock)。例如兩個進程同時持有對方所需的資源，若不釋放就會互相等待。Peterson 演算法透過 `turn` 變數確保不會永久等待，實現有限進度(finite progress)。一般而言，使用 semaphore 或 mutex 時，若取得鎖的順序不一致或忘記釋放鎖，都可能導致死鎖問題。
+
+Deadlock occurs when two or more processes wait indefinitely for resources held by each other. The paper recommends designing protocols where ownership order is consistent or where progress can always be made, such as via a `turn` variable. Fairness ensures that every waiting process eventually enters its critical section.
+
