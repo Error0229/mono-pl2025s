@@ -1,5 +1,0 @@
-# 2. 通道(Channel) 與同步
-Channel 是 goroutine 溝通的核心工具。創建通道常用 `make(chan T)`，亦可給定緩衝大小 `make(chan T, n)`。通道操作包含傳送 `ch <- v` 與接收 `v := <-ch`，在無緩衝情況下，兩者需同步完成。緩衝通道則允許有限度的異步傳送。範例 `pipeline1` 展示了三階段流水線：計數器、平方計算、輸出器，每一階段皆在獨立 goroutine 中進行。
-
-Channels in Go serve as typed conduits for values. When unbuffered, both sender and receiver block until the other side is ready. A buffered channel allows asynchronous sends up to its capacity. Examples like the pipeline series show how to connect goroutines into stages using channels to synchronize data flow.
-

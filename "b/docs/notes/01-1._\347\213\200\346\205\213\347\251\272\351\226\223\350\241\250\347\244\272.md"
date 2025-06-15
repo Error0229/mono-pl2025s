@@ -1,6 +1,0 @@
-# 1. 狀態空間表示
-在 Prolog 中建模問題通常需定義狀態(space)與後繼關係(successor relation)。常見的寫法是 `s(X,Y,C)`，其中 `X`、`Y` 為狀態，`C` 為從 `X` 移至 `Y` 的成本。這種關係可透過事實或規則描述，並搭配搜尋演算法實現問題求解。為讓程式能自動探索可能狀態，我們也會定義目標狀態檢查，例如 `goal(State)`。
-
-
-PrologCh4 explains that a state in a search space can be modeled as a fact. Each state transition may be represented by a rule that captures how moving from one configuration to another incurs some cost. For example, an automaton starts with an initial state and ends with a final state. By enumerating transitions explicitly in Prolog, the engine can traverse states systematically. This approach matches the "state space" method mentioned in the heuristic search slides.
-

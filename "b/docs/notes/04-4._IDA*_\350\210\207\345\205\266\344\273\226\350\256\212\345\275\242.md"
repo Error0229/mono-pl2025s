@@ -1,5 +1,0 @@
-# 4. IDA* 與其他變形
-當搜尋空間龐大時，A* 需要儲存大量節點，容易導致記憶體爆炸。IDA*(Iterative Deepening A*) 透過逐漸提高 `f` 上限來控制展開深度，重複以深度優先方式搜尋，比傳統 A* 更省空間。另一種變形 RBFS (Recursive Best-First Search) 則在遞迴過程中記錄次佳 `f` 值，遇到更差情況即回溯，可在記憶體與時間之間取得折衷。
-
-The slides outline IDA* as a way to bound memory usage. It repeatedly performs depth-first searches with an f-cost cutoff that increases each iteration. RBFS keeps track of the best alternative path and backtracks whenever the current path exceeds this bound, thereby mimicking best-first behavior while using constant memory.
-

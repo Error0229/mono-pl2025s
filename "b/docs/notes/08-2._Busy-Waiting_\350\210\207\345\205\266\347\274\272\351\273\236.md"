@@ -1,5 +1,0 @@
-# 2. Busy-Waiting 與其缺點
-早期的同步策略多利用忙等，即進程不斷輪詢共享變數以等待條件。這種方式雖易於理解，卻導致 CPU 空轉。Peterson 演算法雖能解決兩進程互斥問題，但仍需兩個旗標與一個 `turn` 變數，在實際系統中效率不佳。為此，後來出現 semaphore、monitor 等更高階機制。
-
-The paper remarks that busy-waiting forces a process to spin while checking a condition, wasting CPU cycles. This approach also complicates scheduling because the waiting process continuously occupies the processor. Modern primitives like semaphores or condition variables avoid this by blocking the process until another signals that the condition holds.
-

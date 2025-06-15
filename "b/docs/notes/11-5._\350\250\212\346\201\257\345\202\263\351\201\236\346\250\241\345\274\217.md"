@@ -1,7 +1,0 @@
-# 5. 訊息傳遞模式
-論文也討論以訊息交換 (message passing) 實作同步，例如 CSP (Communicating Sequential Processes)。此模型強調「禁止共享變數」，改以通道傳送訊息。Go 語言的 goroutine 與 channel 即受到此思想啟發。訊息傳遞天然具有同步特性：發送者與接收者會在訊息交握時達成一致。
-
-## 三、Go 語言併發特性
-
-Message passing systems, such as CSP described by Hoare, avoid shared variables altogether. A send operation synchronizes with a receive so data is exchanged safely. The paper discusses both synchronous and buffered styles; Go's channels are an example of synchronous message passing with optional buffering.
-
